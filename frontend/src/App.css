@@ -1,34 +1,158 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&family=Caveat:wght@400;500;600&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+body {
+  font-family: 'Inter', sans-serif;
+  background: #F5F2EA;
+  color: #2C3329;
+  overflow-x: hidden;
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Manrope', sans-serif;
 }
 
-.App-link {
-    color: #61dafb;
+.App {
+  min-height: 100vh;
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+.btn-primary {
+  border-radius: 9999px;
+  padding: 0.75rem 2rem;
+  background: #4A6741;
+  color: white;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px -2px rgba(217, 142, 115, 0.3);
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.btn-primary:hover {
+  background: #3D5636;
+  box-shadow: 0 10px 30px -10px rgba(74, 103, 65, 0.2);
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  border-radius: 9999px;
+  padding: 0.75rem 2rem;
+  background: white;
+  border: 1px solid #E5E7EB;
+  color: #4A6741;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.btn-secondary:hover {
+  background: #F5F2EA;
+}
+
+.card {
+  background: white;
+  border-radius: 1rem;
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px -4px rgba(74, 103, 65, 0.1);
+  padding: 1.5rem;
+}
+
+.card:hover {
+  border-color: rgba(74, 103, 65, 0.2);
+  box-shadow: 0 10px 30px -10px rgba(74, 103, 65, 0.2);
+  transform: translateY(-4px);
+}
+
+.input-field {
+  border-radius: 0.75rem;
+  border: 1px solid #E5E7EB;
+  background: rgba(255, 255, 255, 0.5);
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  width: 100%;
+  font-family: 'Inter', sans-serif;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: #4A6741;
+  box-shadow: 0 0 0 3px rgba(74, 103, 65, 0.1);
+}
+
+.nav-glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.text-accent {
+  color: #D98E73;
+}
+
+.bg-accent {
+  background: #D98E73;
+}
+
+.text-primary {
+  color: #4A6741;
+}
+
+.bg-primary {
+  background: #4A6741;
+}
+
+.text-muted {
+  color: #6B7280;
+}
+
+.handwritten {
+  font-family: 'Caveat', cursive;
+}
+
+.hero-gradient {
+  background: linear-gradient(135deg, #F5F2EA 0%, #E8EFE6 50%, #F5F2EA 100%);
+}
+
+.glass-overlay {
+  background: rgba(74, 103, 65, 0.1);
+  backdrop-filter: blur(8px);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.animate-delay-1 {
+  animation-delay: 0.1s;
+  opacity: 0;
+}
+
+.animate-delay-2 {
+  animation-delay: 0.2s;
+  opacity: 0;
+}
+
+.animate-delay-3 {
+  animation-delay: 0.3s;
+  opacity: 0;
 }
