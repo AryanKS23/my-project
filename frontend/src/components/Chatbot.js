@@ -76,7 +76,8 @@ export default function Chatbot() {
         <button
           data-testid="chatbot-toggle-btn"
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 w-16 h-16 rounded-full bg-primary text-white shadow-xl hover:shadow-2xl hover:scale-110 transition-all flex items-center justify-center z-50"
+          className="fixed bottom-6 right-6 w-16 h-16 rounded-full bg-primary text-white shadow-xl hover:shadow-2xl hover:scale-110 transition-all flex items-center justify-center"
+          style={{ zIndex: 9999 }}
         >
           <MessageCircle className="w-7 h-7" />
         </button>
@@ -85,7 +86,8 @@ export default function Chatbot() {
       {isOpen && (
         <div
           data-testid="chatbot-window"
-          className="fixed bottom-6 right-6 w-96 h-[600px] bg-white rounded-2xl shadow-2xl flex flex-col z-50 overflow-hidden"
+          className="fixed bottom-6 right-6 w-96 h-[600px] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+          style={{ zIndex: 9999 }}
         >
           <div className="bg-primary text-white p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">

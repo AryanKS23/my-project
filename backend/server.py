@@ -208,6 +208,10 @@ async def analyze_symptoms(request: SymptomAnalysisRequest):
 async def analyze_symptom_image(file: UploadFile = File(...), user_id: Optional[str] = None):
     try:
         contents = await file.read()
+        
+        if len(contents) > 10 * 1024 * 1024:
+            raise HTTPException(status_code=400, detail="Image too large. Maximum size is 10MB")
+        
         image_base64 = base64.b64encode(contents).decode('utf-8')
         
         chat = LlmChat(
@@ -222,15 +226,20 @@ async def analyze_symptom_image(file: UploadFile = File(...), user_id: Optional[
             file_contents=[ImageContent(image_base64)]
         )
         
-        text_response, _ = await chat.send_message_multimodal_response(msg)
+        text_response, images = await chat.send_message_multimodal_response(msg)
         
         return {
-            "analysis": text_response,
+            "analysis": text_response if text_response else "Image analyzed. Please consult a healthcare professional for proper diagnosis.",
             "message": "Image analyzed successfully"
         }
+    except HTTPException:
+        raise
     except Exception as e:
-        logging.error(f"Image analysis error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Image analysis failed: {str(e)}")
+        logging.error(f"Image analysis error: {str(e)}", exc_info=True)
+        return {
+            "analysis": "We're experiencing technical difficulties with image analysis. Please describe your symptoms in text form, or try again later. For urgent concerns, please consult a healthcare professional directly.",
+            "message": "Image analysis temporarily unavailable"
+        }
 
 @api_router.get("/doctors")
 async def get_doctors(specialization: Optional[str] = None, min_rating: Optional[float] = None):
