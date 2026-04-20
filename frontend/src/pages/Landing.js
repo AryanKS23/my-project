@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, Activity, Users, MessageCircle, Search, MapPin, BookOpen, AlertCircle } from 'lucide-react';
+import { Heart, Activity, Users, Search, MapPin, BookOpen, AlertCircle, Stethoscope, Shield } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 
 export default function Landing() {
@@ -46,12 +46,21 @@ export default function Landing() {
             </div>
             
             <div className="animate-fade-in-up animate-delay-2 relative">
-              <div className="rounded-2xl overflow-hidden shadow-2xl">
-                <img
-                  src="https://images.unsplash.com/photo-1619253690419-4e3a7753c246?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzR8MHwxfHNlYXJjaHwyfHx3b21hbiUyMGxhdWdoaW5nJTIwb3V0ZG9vcnMlMjBwYXJrfGVufDB8fHx8MTc3MTIzMzQ0Mnww&ixlib=rb-4.1.0&q=85"
-                  alt="Happy person outdoors"
-                  className="w-full h-auto"
-                />
+              <div className="rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-primary/5 to-accent/5 p-12 flex items-center justify-center">
+                <div className="grid grid-cols-2 gap-8">
+                  <div className="w-32 h-32 rounded-2xl bg-white shadow-lg flex items-center justify-center">
+                    <Stethoscope className="w-16 h-16 text-primary" />
+                  </div>
+                  <div className="w-32 h-32 rounded-2xl bg-white shadow-lg flex items-center justify-center">
+                    <Heart className="w-16 h-16 text-accent" />
+                  </div>
+                  <div className="w-32 h-32 rounded-2xl bg-white shadow-lg flex items-center justify-center">
+                    <Activity className="w-16 h-16 text-accent" />
+                  </div>
+                  <div className="w-32 h-32 rounded-2xl bg-white shadow-lg flex items-center justify-center">
+                    <Shield className="w-16 h-16 text-primary" />
+                  </div>
+                </div>
               </div>
               <div className="absolute -bottom-6 -right-6 bg-white rounded-2xl p-6 shadow-xl hidden lg:block">
                 <p className="handwritten text-3xl text-primary">24/7 Support</p>
@@ -119,12 +128,33 @@ export default function Landing() {
       <section className="py-20 px-4 sm:px-6 lg:px-8 hero-gradient">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="rounded-2xl overflow-hidden shadow-xl">
-              <img
-                src="https://images.unsplash.com/photo-1659353886973-ced1dfeab3ac?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxOTF8MHwxfHNlYXJjaHw0fHxmcmllbmRseSUyMGZlbWFsZSUyMGRvY3RvciUyMHNtaWxlfGVufDB8fHx8MTc3MTIzMzQ0Mnww&ixlib=rb-4.1.0&q=85"
-                alt="Friendly doctor"
-                className="w-full h-auto"
-              />
+            <div className="rounded-2xl overflow-hidden shadow-xl bg-white p-12">
+              <div className="grid grid-cols-2 gap-6">
+                <div className="text-center">
+                  <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                    <Heart className="w-10 h-10 text-primary" />
+                  </div>
+                  <p className="text-sm font-medium text-primary">AI Analysis</p>
+                </div>
+                <div className="text-center">
+                  <div className="w-20 h-20 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-3">
+                    <Users className="w-10 h-10 text-accent" />
+                  </div>
+                  <p className="text-sm font-medium text-primary">Expert Doctors</p>
+                </div>
+                <div className="text-center">
+                  <div className="w-20 h-20 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-3">
+                    <MapPin className="w-10 h-10 text-accent" />
+                  </div>
+                  <p className="text-sm font-medium text-primary">Near You</p>
+                </div>
+                <div className="text-center">
+                  <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                    <Shield className="w-10 h-10 text-primary" />
+                  </div>
+                  <p className="text-sm font-medium text-primary">Secure & Safe</p>
+                </div>
+              </div>
             </div>
 
             <div>
@@ -209,6 +239,7 @@ export default function Landing() {
               <ul className="space-y-2 text-sm opacity-80">
                 <li><button onClick={() => navigate('/emergency')}>Emergency</button></li>
                 <li><button onClick={() => navigate('/dashboard')}>Dashboard</button></li>
+                <li><button onClick={() => navigate('/patient-records')}>Patient Records</button></li>
               </ul>
             </div>
             <div>

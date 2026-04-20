@@ -12,6 +12,7 @@ export default function Navigation() {
     { path: '/symptom-checker', label: 'Symptom Checker' },
     { path: '/doctors', label: 'Find Doctors' },
     { path: '/dashboard', label: 'Dashboard' },
+    { path: '/patient-records', label: 'Patient Records' },
     { path: '/health-tips', label: 'Health Tips' },
     { path: '/emergency', label: 'Emergency' }
   ];

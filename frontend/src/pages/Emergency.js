@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Phone, MapPin, AlertTriangle } from 'lucide-react';
+import { Phone, MapPin, AlertTriangle, Ambulance } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import axios from 'axios';
 
@@ -45,24 +45,72 @@ export default function Emergency() {
               Emergency Services
             </h1>
             <p className="text-base leading-relaxed text-gray-700 max-w-2xl mx-auto">
-              Quick access to nearby emergency hospitals and 24/7 medical services
+              Quick access to Indian emergency services and nearby hospitals
             </p>
           </div>
 
-          <div className="card bg-red-50 border-red-200 mb-8">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-                <Phone className="w-6 h-6 text-red-600" />
+          <div className="grid md:grid-cols-3 gap-6 mb-8">
+            <div className="card bg-red-50 border-red-200">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                  <Ambulance className="w-6 h-6 text-red-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-700 mb-1">Ambulance</p>
+                  <div className="flex gap-2">
+                    <a
+                      data-testid="emergency-call-102"
+                      href="tel:102"
+                      className="text-2xl font-bold text-red-600 hover:text-red-700"
+                    >
+                      102
+                    </a>
+                    <span className="text-gray-400">/</span>
+                    <a
+                      data-testid="emergency-call-108"
+                      href="tel:108"
+                      className="text-2xl font-bold text-red-600 hover:text-red-700"
+                    >
+                      108
+                    </a>
+                  </div>
+                </div>
               </div>
-              <div>
-                <p className="text-sm text-gray-700 mb-1">For immediate life-threatening emergencies, call:</p>
-                <a
-                  data-testid="emergency-call-btn"
-                  href="tel:911"
-                  className="text-3xl font-bold text-red-600 hover:text-red-700"
-                >
-                  911
-                </a>
+            </div>
+
+            <div className="card bg-blue-50 border-blue-200">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                  <Phone className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-700 mb-1">Police</p>
+                  <a
+                    data-testid="emergency-call-100"
+                    href="tel:100"
+                    className="text-2xl font-bold text-blue-600 hover:text-blue-700"
+                  >
+                    100
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <div className="card bg-orange-50 border-orange-200">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
+                  <AlertTriangle className="w-6 h-6 text-orange-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-700 mb-1">Fire</p>
+                  <a
+                    data-testid="emergency-call-101"
+                    href="tel:101"
+                    className="text-2xl font-bold text-orange-600 hover:text-orange-700"
+                  >
+                    101
+                  </a>
+                </div>
               </div>
             </div>
           </div>
@@ -138,7 +186,11 @@ export default function Emergency() {
             <ul className="space-y-2 text-sm text-gray-700">
               <li className="flex items-start gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-yellow-600 mt-2 flex-shrink-0" />
-                Call 911 immediately for life-threatening emergencies
+                Call 102/108 immediately for medical emergencies and ambulance services
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-yellow-600 mt-2 flex-shrink-0" />
+                Call 100 for police assistance and 101 for fire emergencies
               </li>
               <li className="flex items-start gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-yellow-600 mt-2 flex-shrink-0" />
@@ -146,11 +198,7 @@ export default function Emergency() {
               </li>
               <li className="flex items-start gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-yellow-600 mt-2 flex-shrink-0" />
-                Always have your medical information and insurance details ready
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-yellow-600 mt-2 flex-shrink-0" />
-                If possible, call ahead to inform the hospital of your arrival
+                Always have your medical information and identification ready
               </li>
             </ul>
           </div>

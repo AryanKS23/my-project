@@ -7,6 +7,7 @@ import DoctorFinder from '@/pages/DoctorFinder';
 import Dashboard from '@/pages/Dashboard';
 import Emergency from '@/pages/Emergency';
 import HealthTips from '@/pages/HealthTips';
+import PatientRecords from '@/pages/PatientRecords';
 import Chatbot from '@/components/Chatbot';
 
 export default function App() {
@@ -20,6 +21,7 @@ export default function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/emergency" element={<Emergency />} />
           <Route path="/health-tips" element={<HealthTips />} />
+          <Route path="/patient-records" element={<PatientRecords />} />
         </Routes>
         <Chatbot />
       </BrowserRouter>

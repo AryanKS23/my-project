@@ -118,6 +118,24 @@ class HealthTip(BaseModel):
     category: str
     tips: List[str]
 
+class PatientDocument(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    document_type: str
+    file_name: str
+    file_data: str
+    allergies: Optional[List[str]] = []
+    notes: Optional[str] = None
+    uploaded_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class PatientDocumentCreate(BaseModel):
+    user_id: str
+    document_type: str
+    file_name: str
+    allergies: Optional[List[str]] = []
+    notes: Optional[str] = None
+
 @api_router.get("/")
 async def root():
     return {"message": "HealthAdvisor API"}
@@ -373,26 +391,87 @@ async def get_health_tips(category: Optional[str] = "general"):
 
 @api_router.post("/seed-data")
 async def seed_data():
-    existing_doctors = await db.doctors.count_documents({})
-    if existing_doctors > 0:
-        return {"message": "Data already seeded"}
+    await db.doctors.delete_many({})
+    await db.hospitals.delete_many({})
+    await db.medicines.delete_many({})
     
     doctors = [
-        {"id": str(uuid.uuid4()), "name": "Dr. Sarah Johnson", "specialization": "Cardiologist", "rating": 4.8, "contact": "+1-555-0101", "location": "City Hospital", "lat": 40.7128, "lng": -74.0060, "operating_hours": "9 AM - 5 PM", "hospital": "City Hospital"},
-        {"id": str(uuid.uuid4()), "name": "Dr. Michael Chen", "specialization": "General Physician", "rating": 4.5, "contact": "+1-555-0102", "location": "Community Clinic", "lat": 40.7580, "lng": -73.9855, "operating_hours": "8 AM - 6 PM", "hospital": "Community Clinic"},
-        {"id": str(uuid.uuid4()), "name": "Dr. Emily Rodriguez", "specialization": "Dermatologist", "rating": 4.9, "contact": "+1-555-0103", "location": "Skin Care Center", "lat": 40.7489, "lng": -73.9680, "operating_hours": "10 AM - 7 PM", "hospital": "Skin Care Center"},
-        {"id": str(uuid.uuid4()), "name": "Dr. James Wilson", "specialization": "Pediatrician", "rating": 4.7, "contact": "+1-555-0104", "location": "Children's Hospital", "lat": 40.7829, "lng": -73.9654, "operating_hours": "8 AM - 4 PM", "hospital": "Children's Hospital"},
-        {"id": str(uuid.uuid4()), "name": "Dr. Lisa Anderson", "specialization": "Neurologist", "rating": 4.6, "contact": "+1-555-0105", "location": "Neuro Clinic", "lat": 40.7614, "lng": -73.9776, "operating_hours": "9 AM - 5 PM", "hospital": "Neuro Clinic"}
+        {"id": str(uuid.uuid4()), "name": "Dr. Amit Sharma", "specialization": "Cardiologist", "rating": 4.8, "contact": "+91-98765-43210", "location": "Apollo Hospital, Delhi", "lat": 28.5355, "lng": 77.3910, "operating_hours": "9 AM - 5 PM", "hospital": "Apollo Hospital"},
+        {"id": str(uuid.uuid4()), "name": "Dr. Priya Mehta", "specialization": "General Physician (MBBS, MD)", "rating": 4.6, "contact": "+91-98765-43211", "location": "Fortis Hospital, Mumbai", "lat": 19.0760, "lng": 72.8777, "operating_hours": "8 AM - 6 PM", "hospital": "Fortis Hospital"},
+        {"id": str(uuid.uuid4()), "name": "Dr. Rajesh Kumar", "specialization": "Dermatologist (MBBS, MD)", "rating": 4.9, "contact": "+91-98765-43212", "location": "Max Hospital, Bangalore", "lat": 12.9716, "lng": 77.5946, "operating_hours": "10 AM - 7 PM", "hospital": "Max Hospital"},
+        {"id": str(uuid.uuid4()), "name": "Dr. Anjali Verma", "specialization": "Pediatrician (MBBS, MD)", "rating": 4.7, "contact": "+91-98765-43213", "location": "Medanta Hospital, Gurgaon", "lat": 28.4089, "lng": 77.0322, "operating_hours": "8 AM - 4 PM", "hospital": "Medanta Hospital"},
+        {"id": str(uuid.uuid4()), "name": "Dr. Vikram Singh", "specialization": "Neurologist (MBBS, DM)", "rating": 4.8, "contact": "+91-98765-43214", "location": "AIIMS, Delhi", "lat": 28.5672, "lng": 77.2100, "operating_hours": "9 AM - 5 PM", "hospital": "AIIMS"},
+        {"id": str(uuid.uuid4()), "name": "Dr. Sneha Patel", "specialization": "Gynecologist (MBBS, MS)", "rating": 4.9, "contact": "+91-98765-43215", "location": "Manipal Hospital, Bangalore", "lat": 12.9141, "lng": 77.6101, "operating_hours": "10 AM - 6 PM", "hospital": "Manipal Hospital"}
     ]
     await db.doctors.insert_many(doctors)
     
     hospitals = [
-        {"id": str(uuid.uuid4()), "name": "City Hospital", "location": "123 Main St", "lat": 40.7128, "lng": -74.0060, "contact": "+1-555-1001", "operating_hours": "24/7", "emergency": True, "rating": 4.5},
-        {"id": str(uuid.uuid4()), "name": "Community Clinic", "location": "456 Oak Ave", "lat": 40.7580, "lng": -73.9855, "contact": "+1-555-1002", "operating_hours": "8 AM - 8 PM", "emergency": False, "rating": 4.2},
-        {"id": str(uuid.uuid4()), "name": "Emergency Medical Center", "location": "789 Pine Rd", "lat": 40.7489, "lng": -73.9680, "contact": "+1-555-1003", "operating_hours": "24/7", "emergency": True, "rating": 4.7},
-        {"id": str(uuid.uuid4()), "name": "Children's Hospital", "location": "321 Elm St", "lat": 40.7829, "lng": -73.9654, "contact": "+1-555-1004", "operating_hours": "24/7", "emergency": True, "rating": 4.8}
+        {"id": str(uuid.uuid4()), "name": "Apollo Hospital", "location": "Sarita Vihar, Delhi, 110076", "lat": 28.5355, "lng": 77.3910, "contact": "+91-11-2692-5858", "operating_hours": "24/7", "emergency": True, "rating": 4.7},
+        {"id": str(uuid.uuid4()), "name": "Fortis Hospital", "location": "Mulund, Mumbai, 400080", "lat": 19.0760, "lng": 72.8777, "contact": "+91-22-6754-7000", "operating_hours": "24/7", "emergency": True, "rating": 4.6},
+        {"id": str(uuid.uuid4()), "name": "Max Hospital", "location": "Saket, Delhi, 110017", "lat": 28.5244, "lng": 77.2066, "contact": "+91-11-2651-5050", "operating_hours": "24/7", "emergency": True, "rating": 4.8},
+        {"id": str(uuid.uuid4()), "name": "AIIMS", "location": "Ansari Nagar, Delhi, 110029", "lat": 28.5672, "lng": 77.2100, "contact": "+91-11-2658-8500", "operating_hours": "24/7", "emergency": True, "rating": 4.9},
+        {"id": str(uuid.uuid4()), "name": "Manipal Hospital", "location": "HAL Airport Road, Bangalore, 560017", "lat": 12.9141, "lng": 77.6101, "contact": "+91-80-2502-4444", "operating_hours": "24/7", "emergency": True, "rating": 4.7}
     ]
     await db.hospitals.insert_many(hospitals)
+    
+    medicines = [
+        {"id": str(uuid.uuid4()), "name": "Paracetamol", "category": "Pain Relief", "dosage": "500mg", "price": 5.99, "description": "For fever and mild to moderate pain"},
+        {"id": str(uuid.uuid4()), "name": "Ibuprofen", "category": "Pain Relief", "dosage": "200mg", "price": 7.99, "description": "Anti-inflammatory pain reliever"},
+        {"id": str(uuid.uuid4()), "name": "Cetirizine", "category": "Allergy", "dosage": "10mg", "price": 8.99, "description": "Antihistamine for allergies"},
+        {"id": str(uuid.uuid4()), "name": "Omeprazole", "category": "Digestive", "dosage": "20mg", "price": 12.99, "description": "For acid reflux and heartburn"},
+        {"id": str(uuid.uuid4()), "name": "Vitamin C", "category": "Supplement", "dosage": "1000mg", "price": 9.99, "description": "Immune system support"},
+        {"id": str(uuid.uuid4()), "name": "Cough Syrup", "category": "Cold & Flu", "dosage": "10ml", "price": 6.99, "description": "Relieves cough and throat irritation"}
+    ]
+    await db.medicines.insert_many(medicines)
+    
+    return {"message": "Sample data seeded successfully with Indian locations"}
+
+@api_router.post("/patient-documents")
+async def upload_patient_document(file: UploadFile = File(...), user_id: str = '', document_type: str = '', allergies: str = '', notes: str = ''):
+    try:
+        if not user_id:
+            raise HTTPException(status_code=400, detail="User ID is required")
+        
+        contents = await file.read()
+        
+        if len(contents) > 10 * 1024 * 1024:
+            raise HTTPException(status_code=400, detail="File too large. Maximum size is 10MB")
+        
+        file_data = base64.b64encode(contents).decode('utf-8')
+        
+        allergy_list = [a.strip() for a in allergies.split(',') if a.strip()] if allergies else []
+        
+        document = PatientDocument(
+            user_id=user_id,
+            document_type=document_type or "Medical Report",
+            file_name=file.filename,
+            file_data=file_data,
+            allergies=allergy_list,
+            notes=notes
+        )
+        
+        doc = document.model_dump()
+        doc['uploaded_at'] = doc['uploaded_at'].isoformat()
+        await db.patient_documents.insert_one(doc)
+        
+        return {"message": "Document uploaded successfully", "document_id": document.id}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Document upload error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to upload document")
+
+@api_router.get("/patient-documents/{user_id}")
+async def get_patient_documents(user_id: str):
+    try:
+        documents = await db.patient_documents.find({"user_id": user_id}, {"_id": 0, "file_data": 0}).to_list(1000)
+        for doc in documents:
+            if isinstance(doc['uploaded_at'], str):
+                doc['uploaded_at'] = datetime.fromisoformat(doc['uploaded_at'])
+        return documents
+    except Exception as e:
+        logging.error(f"Fetch documents error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch documents")
     
     medicines = [
         {"id": str(uuid.uuid4()), "name": "Paracetamol", "category": "Pain Relief", "dosage": "500mg", "price": 5.99, "description": "For fever and mild to moderate pain"},
