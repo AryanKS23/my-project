@@ -395,22 +395,91 @@ async def seed_data():
     await db.hospitals.delete_many({})
     await db.medicines.delete_many({})
     
+    # Indian doctors with exact hospital coordinates
     doctors = [
-        {"id": str(uuid.uuid4()), "name": "Dr. Amit Sharma", "specialization": "Cardiologist", "rating": 4.8, "contact": "+91-98765-43210", "location": "Apollo Hospital, Delhi", "lat": 28.5355, "lng": 77.3910, "operating_hours": "9 AM - 5 PM", "hospital": "Apollo Hospital"},
-        {"id": str(uuid.uuid4()), "name": "Dr. Priya Mehta", "specialization": "General Physician (MBBS, MD)", "rating": 4.6, "contact": "+91-98765-43211", "location": "Fortis Hospital, Mumbai", "lat": 19.0760, "lng": 72.8777, "operating_hours": "8 AM - 6 PM", "hospital": "Fortis Hospital"},
-        {"id": str(uuid.uuid4()), "name": "Dr. Rajesh Kumar", "specialization": "Dermatologist (MBBS, MD)", "rating": 4.9, "contact": "+91-98765-43212", "location": "Max Hospital, Bangalore", "lat": 12.9716, "lng": 77.5946, "operating_hours": "10 AM - 7 PM", "hospital": "Max Hospital"},
-        {"id": str(uuid.uuid4()), "name": "Dr. Anjali Verma", "specialization": "Pediatrician (MBBS, MD)", "rating": 4.7, "contact": "+91-98765-43213", "location": "Medanta Hospital, Gurgaon", "lat": 28.4089, "lng": 77.0322, "operating_hours": "8 AM - 4 PM", "hospital": "Medanta Hospital"},
-        {"id": str(uuid.uuid4()), "name": "Dr. Vikram Singh", "specialization": "Neurologist (MBBS, DM)", "rating": 4.8, "contact": "+91-98765-43214", "location": "AIIMS, Delhi", "lat": 28.5672, "lng": 77.2100, "operating_hours": "9 AM - 5 PM", "hospital": "AIIMS"},
-        {"id": str(uuid.uuid4()), "name": "Dr. Sneha Patel", "specialization": "Gynecologist (MBBS, MS)", "rating": 4.9, "contact": "+91-98765-43215", "location": "Manipal Hospital, Bangalore", "lat": 12.9141, "lng": 77.6101, "operating_hours": "10 AM - 6 PM", "hospital": "Manipal Hospital"}
+        {"id": str(uuid.uuid4()), "name": "Dr. Amit Sharma", "specialization": "Cardiologist", "rating": 4.8, "contact": "+91-98765-43210", "location": "Apollo Hospital, Sarita Vihar, Delhi", "lat": 28.5355, "lng": 77.2910, "operating_hours": "9 AM - 5 PM", "hospital": "Apollo Hospital, Sarita Vihar"},
+        {"id": str(uuid.uuid4()), "name": "Dr. Priya Mehta", "specialization": "General Physician (MBBS, MD)", "rating": 4.6, "contact": "+91-98765-43211", "location": "Fortis Hospital, Mulund West, Mumbai", "lat": 19.1722, "lng": 72.9565, "operating_hours": "8 AM - 6 PM", "hospital": "Fortis Hospital, Mulund"},
+        {"id": str(uuid.uuid4()), "name": "Dr. Rajesh Kumar", "specialization": "Dermatologist (MBBS, MD)", "rating": 4.9, "contact": "+91-98765-43212", "location": "Max Super Speciality Hospital, Saket, Delhi", "lat": 28.5244, "lng": 77.2066, "operating_hours": "10 AM - 7 PM", "hospital": "Max Hospital, Saket"},
+        {"id": str(uuid.uuid4()), "name": "Dr. Anjali Verma", "specialization": "Pediatrician (MBBS, MD)", "rating": 4.7, "contact": "+91-98765-43213", "location": "Medanta - The Medicity, Sector 38, Gurgaon", "lat": 28.4423, "lng": 77.0532, "operating_hours": "8 AM - 4 PM", "hospital": "Medanta Hospital"},
+        {"id": str(uuid.uuid4()), "name": "Dr. Vikram Singh", "specialization": "Neurologist (MBBS, DM)", "rating": 4.8, "contact": "+91-98765-43214", "location": "AIIMS, Ansari Nagar, New Delhi", "lat": 28.5672, "lng": 77.2100, "operating_hours": "9 AM - 5 PM", "hospital": "AIIMS Delhi"},
+        {"id": str(uuid.uuid4()), "name": "Dr. Sneha Patel", "specialization": "Gynecologist (MBBS, MS)", "rating": 4.9, "contact": "+91-98765-43215", "location": "Manipal Hospital, HAL Airport Road, Bangalore", "lat": 12.9579, "lng": 77.6413, "operating_hours": "10 AM - 6 PM", "hospital": "Manipal Hospital"}
     ]
     await db.doctors.insert_many(doctors)
     
+    # Indian hospitals with precise GPS coordinates of actual hospital buildings
     hospitals = [
-        {"id": str(uuid.uuid4()), "name": "Apollo Hospital", "location": "Sarita Vihar, Delhi, 110076", "lat": 28.5355, "lng": 77.3910, "contact": "+91-11-2692-5858", "operating_hours": "24/7", "emergency": True, "rating": 4.7},
-        {"id": str(uuid.uuid4()), "name": "Fortis Hospital", "location": "Mulund, Mumbai, 400080", "lat": 19.0760, "lng": 72.8777, "contact": "+91-22-6754-7000", "operating_hours": "24/7", "emergency": True, "rating": 4.6},
-        {"id": str(uuid.uuid4()), "name": "Max Hospital", "location": "Saket, Delhi, 110017", "lat": 28.5244, "lng": 77.2066, "contact": "+91-11-2651-5050", "operating_hours": "24/7", "emergency": True, "rating": 4.8},
-        {"id": str(uuid.uuid4()), "name": "AIIMS", "location": "Ansari Nagar, Delhi, 110029", "lat": 28.5672, "lng": 77.2100, "contact": "+91-11-2658-8500", "operating_hours": "24/7", "emergency": True, "rating": 4.9},
-        {"id": str(uuid.uuid4()), "name": "Manipal Hospital", "location": "HAL Airport Road, Bangalore, 560017", "lat": 12.9141, "lng": 77.6101, "contact": "+91-80-2502-4444", "operating_hours": "24/7", "emergency": True, "rating": 4.7}
+        {
+            "id": str(uuid.uuid4()), 
+            "name": "Apollo Hospital", 
+            "location": "Mathura Road, Sarita Vihar, New Delhi, 110076", 
+            "lat": 28.5355, 
+            "lng": 77.2910, 
+            "contact": "+91-11-2692-5858", 
+            "operating_hours": "24/7", 
+            "emergency": True, 
+            "rating": 4.7,
+            "place_name": "Indraprastha Apollo Hospitals, Sarita Vihar"
+        },
+        {
+            "id": str(uuid.uuid4()), 
+            "name": "Fortis Hospital", 
+            "location": "Mulund Goregaon Link Road, Mulund West, Mumbai, 400078", 
+            "lat": 19.1722, 
+            "lng": 72.9565, 
+            "contact": "+91-22-6754-7000", 
+            "operating_hours": "24/7", 
+            "emergency": True, 
+            "rating": 4.6,
+            "place_name": "Fortis Hospital Mulund"
+        },
+        {
+            "id": str(uuid.uuid4()), 
+            "name": "Max Super Speciality Hospital", 
+            "location": "1, Press Enclave Road, Saket, New Delhi, 110017", 
+            "lat": 28.5244, 
+            "lng": 77.2066, 
+            "contact": "+91-11-2651-5050", 
+            "operating_hours": "24/7", 
+            "emergency": True, 
+            "rating": 4.8,
+            "place_name": "Max Super Speciality Hospital, Saket"
+        },
+        {
+            "id": str(uuid.uuid4()), 
+            "name": "AIIMS Delhi", 
+            "location": "Sri Aurobindo Marg, Ansari Nagar, New Delhi, 110029", 
+            "lat": 28.5672, 
+            "lng": 77.2100, 
+            "contact": "+91-11-2658-8500", 
+            "operating_hours": "24/7", 
+            "emergency": True, 
+            "rating": 4.9,
+            "place_name": "All India Institute of Medical Sciences"
+        },
+        {
+            "id": str(uuid.uuid4()), 
+            "name": "Manipal Hospital", 
+            "location": "98, HAL Airport Road, Kodihalli, Bangalore, 560017", 
+            "lat": 12.9579, 
+            "lng": 77.6413, 
+            "contact": "+91-80-2502-4444", 
+            "operating_hours": "24/7", 
+            "emergency": True, 
+            "rating": 4.7,
+            "place_name": "Manipal Hospital HAL Airport Road"
+        },
+        {
+            "id": str(uuid.uuid4()), 
+            "name": "Medanta - The Medicity", 
+            "location": "CH Baktawar Singh Road, Sector 38, Gurugram, 122001", 
+            "lat": 28.4423, 
+            "lng": 77.0532, 
+            "contact": "+91-124-4141-414", 
+            "operating_hours": "24/7", 
+            "emergency": True, 
+            "rating": 4.8,
+            "place_name": "Medanta The Medicity Hospital"
+        }
     ]
     await db.hospitals.insert_many(hospitals)
     

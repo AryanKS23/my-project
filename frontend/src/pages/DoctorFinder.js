@@ -46,8 +46,21 @@ export default function DoctorFinder() {
     }
   };
 
-  const openMap = (lat, lng, name) => {
-    window.open(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`, '_blank');
+  const openMap = (lat, lng, name, placeName) => {
+    if (!lat || !lng) {
+      alert('Location coordinates not available for this facility');
+      return;
+    }
+    
+    // Use place name for better search if available, otherwise use coordinates
+    const searchQuery = placeName 
+      ? encodeURIComponent(placeName)
+      : `${lat},${lng}`;
+    
+    window.open(
+      `https://www.google.com/maps/search/?api=1&query=${searchQuery}`,
+      '_blank'
+    );
   };
 
   return (
@@ -185,7 +198,7 @@ export default function DoctorFinder() {
                       <div className="mt-4 pt-4 border-t flex gap-2">
                         <button
                           data-testid={`view-map-${doctor.id}`}
-                          onClick={() => openMap(doctor.lat, doctor.lng, doctor.name)}
+                          onClick={() => openMap(doctor.lat, doctor.lng, doctor.name, `${doctor.hospital}, ${doctor.location}`)}
                           className="btn-secondary flex-1 text-sm py-2"
                         >
                           View on Map
@@ -245,7 +258,7 @@ export default function DoctorFinder() {
                       <div className="mt-4 pt-4 border-t flex gap-2">
                         <button
                           data-testid={`view-hospital-map-${hospital.id}`}
-                          onClick={() => openMap(hospital.lat, hospital.lng, hospital.name)}
+                          onClick={() => openMap(hospital.lat, hospital.lng, hospital.name, hospital.place_name || hospital.location)}
                           className="btn-secondary flex-1 text-sm py-2"
                         >
                           View on Map

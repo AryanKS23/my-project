@@ -27,8 +27,21 @@ export default function Emergency() {
     }
   };
 
-  const openMap = (lat, lng) => {
-    window.open(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`, '_blank');
+  const openMap = (lat, lng, placeName, location) => {
+    if (!lat || !lng) {
+      alert('Location coordinates not available for this hospital');
+      return;
+    }
+    
+    // Use place name for precise location, otherwise fallback to coordinates
+    const searchQuery = placeName 
+      ? encodeURIComponent(placeName)
+      : `${lat},${lng}`;
+    
+    window.open(
+      `https://www.google.com/maps/search/?api=1&query=${searchQuery}`,
+      '_blank'
+    );
   };
 
   return (
@@ -162,7 +175,7 @@ export default function Emergency() {
                     <div className="flex gap-2">
                       <button
                         data-testid={`emergency-map-${hospital.id}`}
-                        onClick={() => openMap(hospital.lat, hospital.lng)}
+                        onClick={() => openMap(hospital.lat, hospital.lng, hospital.place_name, hospital.location)}
                         className="flex-1 px-4 py-3 bg-white border-2 border-red-600 text-red-600 rounded-full font-medium hover:bg-red-50 transition-all"
                       >
                         Get Directions
