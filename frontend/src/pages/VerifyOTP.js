@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, RefreshCw, Mail } from 'lucide-react';
+import { ShieldCheck, RefreshCw } from 'lucide-react';
 import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -34,7 +34,7 @@ export default function VerifyOTP() {
     }
   }, [cooldown]);
 
-  const handleVerify = async (e) => {
+  const handleVerify = useCallback(async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
@@ -50,9 +50,9 @@ export default function VerifyOTP() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [email, otp, navigate]);
 
-  const handleResend = async () => {
+  const handleResend = useCallback(async () => {
     setError('');
     setSuccess('');
     setResending(true);
@@ -66,9 +66,9 @@ export default function VerifyOTP() {
     } finally {
       setResending(false);
     }
-  };
+  }, [email]);
 
-  const handleChangeEmail = () => {
+  const handleChangeEmail = useCallback(() => {
     if (newEmail && newEmail !== email) {
       localStorage.setItem('pending_email', newEmail);
       setEmail(newEmail);
@@ -76,7 +76,7 @@ export default function VerifyOTP() {
       setShowChangeEmail(false);
       setSuccess('Email updated. Please request a new OTP.');
     }
-  };
+  }, [newEmail, email]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F5F2EA] via-[#E8EFE6] to-[#F5F2EA] flex items-center justify-center p-4">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Upload, FileText, X, CheckCircle, AlertCircle } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import axios from 'axios';
@@ -17,20 +17,19 @@ export default function PatientRecords() {
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
-  useEffect(() => {
-    if (userId) {
-      fetchDocuments();
-    }
-  }, [userId]);
-
-  const fetchDocuments = async () => {
+  const fetchDocuments = useCallback(async () => {
+    if (!userId) return;
     try {
       const response = await axios.get(`${API}/patient-documents/${userId}`);
       setDocuments(response.data);
     } catch (error) {
-      console.error('Error fetching documents:', error);
+      setMessage({ type: 'error', text: 'Failed to load documents' });
     }
-  };
+  }, [userId]);
+
+  useEffect(() => {
+    fetchDocuments();
+  }, [fetchDocuments]);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -102,7 +101,6 @@ export default function PatientRecords() {
       setNotes('');
       fetchDocuments();
     } catch (error) {
-      console.error('Upload error:', error);
       setMessage({ type: 'error', text: 'Failed to upload document. Please try again.' });
     } finally {
       setUploading(false);
@@ -277,10 +275,10 @@ export default function PatientRecords() {
               
               {documents.length > 0 ? (
                 <div className="space-y-4">
-                  {documents.map((doc, idx) => (
+                  {documents.map((doc) => (
                     <div
                       key={doc.id}
-                      data-testid={`document-${idx}`}
+                      data-testid={`document-${doc.id}`}
                       className="p-4 bg-gray-50 rounded-xl"
                     >
                       <div className="flex items-start gap-3">
@@ -294,7 +292,7 @@ export default function PatientRecords() {
                             <div className="flex flex-wrap gap-2 mb-2">
                               {doc.allergies.map((allergy, i) => (
                                 <span
-                                  key={i}
+                                  key={`${doc.id}-allergy-${i}`}
                                   className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs"
                                 >
                                   {allergy}
