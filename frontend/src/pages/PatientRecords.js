@@ -7,7 +7,11 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 export default function PatientRecords() {
-  const [userId, setUserId] = useState(localStorage.getItem('healthadvisor_user_id') || '');
+  // Get user ID from auth system first, fallback to old system
+  const authUser = JSON.parse(localStorage.getItem('user_data') || '{}');
+  const [userId, setUserId] = useState(
+    authUser.id || localStorage.getItem('healthadvisor_user_id') || ''
+  );
   const [documents, setDocuments] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [preview, setPreview] = useState(null);
@@ -16,6 +20,31 @@ export default function PatientRecords() {
   const [notes, setNotes] = useState('');
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [setupInProgress, setSetupInProgress] = useState(false);
+
+  // Auto-create profile if authenticated user doesn't have health profile
+  useEffect(() => {
+    const autoSetupProfile = async () => {
+      if (!userId && authUser.name && authUser.email && !setupInProgress) {
+        setSetupInProgress(true);
+        try {
+          const response = await axios.post(`${API}/users`, {
+            name: authUser.name,
+            email: authUser.email
+          });
+          const newUserId = response.data.id;
+          localStorage.setItem('healthadvisor_user_id', newUserId);
+          setUserId(newUserId);
+        } catch (error) {
+          // Profile might already exist, try to find it
+          setMessage({ type: 'info', text: 'Setting up your profile...' });
+        } finally {
+          setSetupInProgress(false);
+        }
+      }
+    };
+    autoSetupProfile();
+  }, [authUser.name, authUser.email, userId, setupInProgress]);
 
   const fetchDocuments = useCallback(async () => {
     if (!userId) return;
@@ -101,7 +130,8 @@ export default function PatientRecords() {
       setNotes('');
       fetchDocuments();
     } catch (error) {
-      setMessage({ type: 'error', text: 'Failed to upload document. Please try again.' });
+      const errorMsg = error.response?.data?.detail || 'Failed to upload document. Please try again.';
+      setMessage({ type: 'error', text: errorMsg });
     } finally {
       setUploading(false);
     }
@@ -115,16 +145,37 @@ export default function PatientRecords() {
           <div className="max-w-2xl mx-auto text-center">
             <div className="card">
               <AlertCircle className="w-16 h-16 text-accent mx-auto mb-4" />
-              <h2 className="text-2xl font-semibold text-primary mb-4">Profile Required</h2>
+              <h2 className="text-2xl font-semibold text-primary mb-4">Setup Required</h2>
               <p className="text-muted-foreground mb-6">
-                Please create your profile first to upload medical documents.
+                To upload medical documents, please complete your profile setup first.
               </p>
-              <button
-                onClick={() => window.location.href = '/dashboard'}
-                className="btn-primary"
-              >
-                Go to Dashboard
-              </button>
+              <div className="space-y-3">
+                <button
+                  onClick={async () => {
+                    // Auto-create profile from auth data
+                    if (authUser.name && authUser.email) {
+                      try {
+                        const response = await axios.post(`${API}/users`, {
+                          name: authUser.name,
+                          email: authUser.email
+                        });
+                        const newUserId = response.data.id;
+                        localStorage.setItem('healthadvisor_user_id', newUserId);
+                        setUserId(newUserId);
+                        window.location.reload();
+                      } catch (error) {
+                        alert('Failed to create profile. Please try again.');
+                      }
+                    }
+                  }}
+                  className="btn-primary w-full"
+                >
+                  Setup Profile Now
+                </button>
+                <p className="text-xs text-muted-foreground">
+                  This will link your medical records to your account
+                </p>
+              </div>
             </div>
           </div>
         </div>

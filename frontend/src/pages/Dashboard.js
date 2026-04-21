@@ -57,7 +57,6 @@ export default function Dashboard() {
       localStorage.setItem('healthadvisor_user_id', createdUserId);
       setShowCreateUser(false);
     } catch (error) {
-      console.error('Error creating user:', error);
       alert('Failed to create profile');
     }
   };
