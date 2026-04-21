@@ -363,17 +363,31 @@ async def analyze_symptoms(request: SymptomAnalysisRequest):
         chat = LlmChat(
             api_key=EMERGENT_LLM_KEY,
             session_id=f"symptom_{uuid.uuid4()}",
-            system_message="You are a medical assistant. Analyze symptoms and provide possible conditions, severity level, recommendations, and suggested specialists. Format your response as: CONDITIONS: [list], SEVERITY: [low/medium/high], RECOMMENDATIONS: [list], SPECIALISTS: [list]"
+            system_message="""You are a medical AI assistant. Analyze symptoms and provide:
+1. Possible conditions (list 2-3 most likely)
+2. Severity (low/medium/high)
+3. Self-care recommendations and OTC medicine suggestions
+4. Suggested specialist doctors
+
+Format response as:
+CONDITIONS: condition1, condition2, condition3
+SEVERITY: low/medium/high
+RECOMMENDATIONS: recommendation1, recommendation2, recommendation3
+MEDICINES: medicine1 (dosage), medicine2 (dosage), medicine3 (dosage)
+SPECIALISTS: specialist1, specialist2
+
+Always provide specific OTC medicines and self-care advice."""
         )
         chat.with_model("gemini", "gemini-3-flash-preview")
         
-        user_msg = UserMessage(text=f"Patient symptoms: {request.symptoms}. Provide detailed analysis.")
+        user_msg = UserMessage(text=f"Patient symptoms: {request.symptoms}. Provide detailed medical analysis with OTC medicine recommendations.")
         response = await chat.send_message(user_msg)
         
         conditions = []
         severity = "medium"
         recommendations = []
         specialists = []
+        medicines = []
         
         if "CONDITIONS:" in response:
             conditions_text = response.split("CONDITIONS:")[1].split("SEVERITY:")[0].strip()
@@ -387,19 +401,56 @@ async def analyze_symptoms(request: SymptomAnalysisRequest):
                 severity = "low"
         
         if "RECOMMENDATIONS:" in response:
-            rec_text = response.split("RECOMMENDATIONS:")[1].split("SPECIALISTS:")[0].strip()
-            recommendations = [r.strip() for r in rec_text.split(",") if r.strip()]
+            rec_section = response.split("RECOMMENDATIONS:")[1]
+            if "MEDICINES:" in rec_section:
+                rec_text = rec_section.split("MEDICINES:")[0].strip()
+            elif "SPECIALISTS:" in rec_section:
+                rec_text = rec_section.split("SPECIALISTS:")[0].strip()
+            else:
+                rec_text = rec_section.strip()
+            recommendations = [r.strip() for r in rec_text.split(",") if r.strip()][:5]
+        
+        if "MEDICINES:" in response:
+            med_section = response.split("MEDICINES:")[1]
+            if "SPECIALISTS:" in med_section:
+                med_text = med_section.split("SPECIALISTS:")[0].strip()
+            else:
+                med_text = med_section.strip()
+            medicines = [m.strip() for m in med_text.split(",") if m.strip()][:5]
         
         if "SPECIALISTS:" in response:
             spec_text = response.split("SPECIALISTS:")[1].strip()
             specialists = [s.strip() for s in spec_text.split(",") if s.strip()]
+        
+        # Fallback to default recommendations if parsing fails
+        if not conditions:
+            conditions = ["Unable to determine specific condition", "Please consult a healthcare professional"]
+        
+        if not recommendations:
+            recommendations = [
+                "Rest and stay hydrated",
+                "Monitor your symptoms closely",
+                "Maintain a balanced diet",
+                "Get adequate sleep",
+                "If symptoms worsen, seek medical attention"
+            ]
+        
+        if not medicines:
+            medicines = [
+                "Paracetamol 500mg (for fever/pain)",
+                "Vitamin C 1000mg (immune support)",
+                "Plenty of fluids and rest"
+            ]
+        
+        if not specialists:
+            specialists = ["General Physician"]
         
         if request.user_id:
             health_record = HealthRecord(
                 user_id=request.user_id,
                 symptoms=request.symptoms,
                 conditions=conditions,
-                medicines=[],
+                medicines=medicines,
                 notes="AI Analysis"
             )
             doc = health_record.model_dump()
@@ -407,17 +458,22 @@ async def analyze_symptoms(request: SymptomAnalysisRequest):
             await db.health_records.insert_one(doc)
         
         return SymptomAnalysisResponse(
-            possible_conditions=conditions if conditions else ["Common cold", "Viral infection"],
+            possible_conditions=conditions,
             severity=severity,
-            recommendations=recommendations if recommendations else ["Rest well", "Stay hydrated", "Monitor symptoms"],
-            suggested_specialists=specialists if specialists else ["General Physician"]
+            recommendations=recommendations + medicines,
+            suggested_specialists=specialists
         )
     except Exception as e:
         logging.error(f"Symptom analysis error: {str(e)}")
         return SymptomAnalysisResponse(
             possible_conditions=["Unable to analyze - please consult a doctor"],
             severity="medium",
-            recommendations=["Consult a healthcare professional"],
+            recommendations=[
+                "Consult a healthcare professional for proper diagnosis",
+                "General OTC options: Paracetamol for fever/pain",
+                "Stay hydrated and get adequate rest",
+                "Monitor symptoms and seek help if they worsen"
+            ],
             suggested_specialists=["General Physician"]
         )
 

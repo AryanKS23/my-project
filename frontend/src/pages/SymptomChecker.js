@@ -195,16 +195,51 @@ export default function SymptomChecker() {
                 <div>
                   <div className="flex items-center gap-3 mb-3">
                     <CheckCircle className="w-6 h-6 text-accent" />
-                    <h3 className="text-xl font-medium text-primary">Recommendations</h3>
+                    <h3 className="text-xl font-medium text-primary">Recommendations & OTC Medicines</h3>
                   </div>
-                  <ul className="space-y-2">
-                    {results.recommendations.map((rec, idx) => (
-                      <li key={idx} data-testid={`recommendation-${idx}`} className="flex items-start gap-2 text-muted-foreground">
-                        <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
-                        {rec}
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="space-y-3">
+                    {results.recommendations.map((rec, idx) => {
+                      const isMedicine = rec.toLowerCase().includes('mg') || 
+                                       rec.toLowerCase().includes('tablet') || 
+                                       rec.toLowerCase().includes('syrup') ||
+                                       rec.toLowerCase().includes('paracetamol') ||
+                                       rec.toLowerCase().includes('ibuprofen') ||
+                                       rec.toLowerCase().includes('vitamin');
+                      
+                      return (
+                        <div
+                          key={`recommendation-${idx}`}
+                          className={`p-3 rounded-lg ${isMedicine ? 'bg-green-50 border border-green-200' : 'bg-gray-50'}`}
+                        >
+                          <div className="flex items-start gap-3">
+                            {isMedicine ? (
+                              <div className="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center flex-shrink-0 text-xs font-bold">
+                                Rx
+                              </div>
+                            ) : (
+                              <span className="w-2 h-2 rounded-full bg-accent mt-2 flex-shrink-0" />
+                            )}
+                            <div className="flex-1">
+                              <p className={`text-sm ${isMedicine ? 'font-medium text-green-800' : 'text-muted-foreground'}`}>
+                                {rec}
+                              </p>
+                              {isMedicine && (
+                                <p className="text-xs text-green-600 mt-1">
+                                  💊 Over-the-counter medicine
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p className="text-xs text-yellow-800">
+                      <strong>⚠️ Important:</strong> These are general suggestions. Always read medicine labels, 
+                      follow dosage instructions, and consult a healthcare professional if symptoms persist or worsen.
+                    </p>
+                  </div>
                 </div>
 
                 <div>
