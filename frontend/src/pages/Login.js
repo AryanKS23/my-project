@@ -146,13 +146,22 @@ export default function Login() {
           </div>
         </div>
 
-        {loginType === 'admin' && (
-          <div className="mt-6 card bg-blue-50 border-blue-200">
-            <p className="text-sm text-gray-700 mb-2 font-medium">Demo Admin Credentials:</p>
-            <p className="text-xs text-gray-600">Email: admin@healthadvisor.com</p>
-            <p className="text-xs text-gray-600">Password: admin123</p>
-          </div>
-        )}
+        <div className="mt-6 card bg-blue-50 border-blue-200">
+          <p className="text-sm text-gray-700 mb-3 font-medium">📋 Test Credentials:</p>
+          {loginType === 'admin' ? (
+            <>
+              <p className="text-xs text-gray-600 mb-1"><strong>Admin:</strong></p>
+              <p className="text-xs text-gray-600">Email: admin@healthadvisor.com</p>
+              <p className="text-xs text-gray-600">Password: admin123</p>
+            </>
+          ) : (
+            <>
+              <p className="text-xs text-gray-600 mb-1"><strong>Test User:</strong></p>
+              <p className="text-xs text-gray-600">Email: tafyans2302@gmail.com</p>
+              <p className="text-xs text-gray-600">Password: test123</p>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
