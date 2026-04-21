@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, User, ArrowRight } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Shield } from 'lucide-react';
 import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -8,17 +8,38 @@ const API = `${BACKEND_URL}/api`;
 
 export default function Signup() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({ name: '', email: '', password: '' });
+  const [formData, setFormData] = useState({ 
+    name: '', 
+    email: '', 
+    password: '', 
+    confirmPassword: '',
+    role: 'user'
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleSignup = async (e) => {
     e.preventDefault();
     setError('');
+    
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+    
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const response = await axios.post(`${API}/auth/signup`, formData);
+      const response = await axios.post(`${API}/auth/signup`, {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password
+      });
       localStorage.setItem('pending_email', formData.email);
       navigate('/verify-otp');
     } catch (err) {
@@ -84,6 +105,55 @@ export default function Signup() {
                   required
                   minLength={6}
                 />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-primary mb-2">Confirm Password</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <input
+                  data-testid="signup-confirm-password"
+                  type="password"
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                  className="input-field pl-10"
+                  placeholder="Confirm your password"
+                  required
+                  minLength={6}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-primary mb-2">Account Type</label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  data-testid="role-user"
+                  onClick={() => setFormData({ ...formData, role: 'user' })}
+                  className={`p-4 rounded-xl border-2 transition-all ${
+                    formData.role === 'user'
+                      ? 'border-primary bg-primary/5'
+                      : 'border-gray-200 hover:border-primary/30'
+                  }`}
+                >
+                  <User className="w-6 h-6 mx-auto mb-2 text-primary" />
+                  <p className="text-sm font-medium text-primary">User</p>
+                </button>
+                <button
+                  type="button"
+                  data-testid="role-admin"
+                  onClick={() => setFormData({ ...formData, role: 'admin' })}
+                  className={`p-4 rounded-xl border-2 transition-all ${
+                    formData.role === 'admin'
+                      ? 'border-primary bg-primary/5'
+                      : 'border-gray-200 hover:border-primary/30'
+                  }`}
+                >
+                  <Shield className="w-6 h-6 mx-auto mb-2 text-primary" />
+                  <p className="text-sm font-medium text-primary">Admin</p>
+                </button>
               </div>
             </div>
 

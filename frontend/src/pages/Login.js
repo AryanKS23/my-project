@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, ArrowRight } from 'lucide-react';
+import { Mail, Lock, ArrowRight, User, Shield } from 'lucide-react';
 import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -9,6 +9,7 @@ const API = `${BACKEND_URL}/api`;
 export default function Login() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: '', password: '' });
+  const [loginType, setLoginType] = useState('user');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -28,7 +29,16 @@ export default function Login() {
         navigate('/dashboard');
       }
     } catch (err) {
-      setError(err.response?.data?.detail || 'Login failed');
+      const detail = err.response?.data?.detail;
+      if (detail === 'Email not verified. Please verify your email first') {
+        setError(detail + '. Redirecting to verification...');
+        setTimeout(() => {
+          localStorage.setItem('pending_email', formData.email);
+          navigate('/verify-otp');
+        }, 2000);
+      } else {
+        setError(detail || 'Login failed');
+      }
     } finally {
       setLoading(false);
     }
@@ -43,6 +53,38 @@ export default function Login() {
         </div>
 
         <div className="card">
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-primary mb-3">Login As</label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                data-testid="login-type-user"
+                onClick={() => setLoginType('user')}
+                className={`p-3 rounded-xl border-2 transition-all ${
+                  loginType === 'user'
+                    ? 'border-primary bg-primary/5'
+                    : 'border-gray-200 hover:border-primary/30'
+                }`}
+              >
+                <User className="w-5 h-5 mx-auto mb-1 text-primary" />
+                <p className="text-sm font-medium text-primary">User</p>
+              </button>
+              <button
+                type="button"
+                data-testid="login-type-admin"
+                onClick={() => setLoginType('admin')}
+                className={`p-3 rounded-xl border-2 transition-all ${
+                  loginType === 'admin'
+                    ? 'border-primary bg-primary/5'
+                    : 'border-gray-200 hover:border-primary/30'
+                }`}
+              >
+                <Shield className="w-5 h-5 mx-auto mb-1 text-primary" />
+                <p className="text-sm font-medium text-primary">Admin</p>
+              </button>
+            </div>
+          </div>
+
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-primary mb-2">Email</label>
@@ -104,10 +146,13 @@ export default function Login() {
           </div>
         </div>
 
-        <div className="mt-6 card bg-blue-50 border-blue-200">
-          <p className="text-sm text-gray-700 mb-2 font-medium">Demo Credentials:</p>
-          <p className="text-xs text-gray-600">Admin: admin@healthadvisor.com / admin123</p>
-        </div>
+        {loginType === 'admin' && (
+          <div className="mt-6 card bg-blue-50 border-blue-200">
+            <p className="text-sm text-gray-700 mb-2 font-medium">Demo Admin Credentials:</p>
+            <p className="text-xs text-gray-600">Email: admin@healthadvisor.com</p>
+            <p className="text-xs text-gray-600">Password: admin123</p>
+          </div>
+        )}
       </div>
     </div>
   );

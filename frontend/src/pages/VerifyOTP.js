@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, RefreshCw } from 'lucide-react';
+import { ShieldCheck, RefreshCw, Mail } from 'lucide-react';
 import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -15,6 +15,8 @@ export default function VerifyOTP() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [cooldown, setCooldown] = useState(0);
+  const [showChangeEmail, setShowChangeEmail] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
 
   useEffect(() => {
     const pendingEmail = localStorage.getItem('pending_email');
@@ -40,7 +42,7 @@ export default function VerifyOTP() {
 
     try {
       await axios.post(`${API}/auth/verify-otp`, { email, otp });
-      setSuccess('Email verified! Redirecting to login...');
+      setSuccess('✓ Email verified successfully! Redirecting...');
       localStorage.removeItem('pending_email');
       setTimeout(() => navigate('/login'), 2000);
     } catch (err) {
@@ -57,12 +59,22 @@ export default function VerifyOTP() {
 
     try {
       await axios.post(`${API}/auth/resend-otp`, { email });
-      setSuccess('OTP resent successfully!');
+      setSuccess('✓ OTP sent to your email!');
       setCooldown(60);
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to resend OTP');
     } finally {
       setResending(false);
+    }
+  };
+
+  const handleChangeEmail = () => {
+    if (newEmail && newEmail !== email) {
+      localStorage.setItem('pending_email', newEmail);
+      setEmail(newEmail);
+      setNewEmail('');
+      setShowChangeEmail(false);
+      setSuccess('Email updated. Please request a new OTP.');
     }
   };
 
@@ -74,14 +86,46 @@ export default function VerifyOTP() {
             <ShieldCheck className="w-10 h-10 text-primary" />
           </div>
           <h1 className="text-4xl font-bold text-primary mb-2">Verify Email</h1>
-          <p className="text-muted-foreground">Enter the 6-digit OTP sent to</p>
-          <p className="text-primary font-medium">{email}</p>
+          <p className="text-muted-foreground mb-2">Enter the 6-digit code sent to</p>
+          <div className="flex items-center justify-center gap-2">
+            <p className="text-primary font-medium">{email}</p>
+            <button
+              onClick={() => setShowChangeEmail(true)}
+              className="text-xs text-primary hover:underline"
+            >
+              Change
+            </button>
+          </div>
         </div>
+
+        {showChangeEmail && (
+          <div className="card mb-4">
+            <h3 className="text-lg font-medium text-primary mb-3">Change Email</h3>
+            <div className="flex gap-2">
+              <input
+                type="email"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                className="input-field flex-1"
+                placeholder="New email address"
+              />
+              <button onClick={handleChangeEmail} className="btn-primary px-4">
+                Update
+              </button>
+            </div>
+            <button
+              onClick={() => setShowChangeEmail(false)}
+              className="text-sm text-muted-foreground mt-2 hover:underline"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
 
         <div className="card">
           <form onSubmit={handleVerify} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-primary mb-2">OTP Code</label>
+              <label className="block text-sm font-medium text-primary mb-2">Verification Code</label>
               <input
                 data-testid="otp-input"
                 type="text"
@@ -107,8 +151,8 @@ export default function VerifyOTP() {
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-muted-foreground mb-3">Didn't receive the code?</p>
+          <div className="mt-6 text-center space-y-3">
+            <p className="text-sm text-muted-foreground">Didn't receive the code?</p>
             <button
               data-testid="resend-otp"
               onClick={handleResend}
@@ -119,6 +163,12 @@ export default function VerifyOTP() {
               {cooldown > 0 ? `Resend in ${cooldown}s` : resending ? 'Sending...' : 'Resend OTP'}
             </button>
           </div>
+        </div>
+
+        <div className="mt-6 card bg-blue-50 border-blue-200">
+          <p className="text-xs text-gray-700">
+            <strong>Note:</strong> OTP expires in 5 minutes. Check your spam folder if you don't see the email.
+          </p>
         </div>
       </div>
     </div>
