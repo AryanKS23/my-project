@@ -8,6 +8,10 @@ import Dashboard from '@/pages/Dashboard';
 import Emergency from '@/pages/Emergency';
 import HealthTips from '@/pages/HealthTips';
 import PatientRecords from '@/pages/PatientRecords';
+import Signup from '@/pages/Signup';
+import Login from '@/pages/Login';
+import VerifyOTP from '@/pages/VerifyOTP';
+import AdminDashboard from '@/pages/AdminDashboard';
 import Chatbot from '@/components/Chatbot';
 
 export default function App() {
@@ -16,12 +20,16 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Landing />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/verify-otp" element={<VerifyOTP />} />
           <Route path="/symptom-checker" element={<SymptomChecker />} />
           <Route path="/doctors" element={<DoctorFinder />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/emergency" element={<Emergency />} />
           <Route path="/health-tips" element={<HealthTips />} />
           <Route path="/patient-records" element={<PatientRecords />} />
+          <Route path="/admin" element={<AdminDashboard />} />
         </Routes>
         <Chatbot />
       </BrowserRouter>

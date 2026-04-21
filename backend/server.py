@@ -1,16 +1,18 @@
-from fastapi import FastAPI, APIRouter, HTTPException, UploadFile, File
+from fastapi import FastAPI, APIRouter, HTTPException, UploadFile, File, Header
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 from pathlib import Path
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, EmailStr
 from typing import List, Optional
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import base64
 from emergentintegrations.llm.chat import LlmChat, UserMessage, ImageContent
+from auth import hash_password, verify_password, generate_otp, create_access_token, get_current_user, require_admin, send_otp_email
+from models import UserSignup, UserLogin, VerifyOTP, ResendOTP, UserInDB, AdminStats
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -139,6 +141,203 @@ class PatientDocumentCreate(BaseModel):
 @api_router.get("/")
 async def root():
     return {"message": "HealthAdvisor API"}
+
+# AUTH ROUTES
+@api_router.post("/auth/signup")
+async def signup(user_data: UserSignup):
+    existing = await db.users.find_one({"email": user_data.email}, {"_id": 0})
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    otp = generate_otp()
+    otp_expiry = datetime.utcnow() + timedelta(minutes=5)
+    
+    user = UserInDB(
+        name=user_data.name,
+        email=user_data.email,
+        password_hash=hash_password(user_data.password),
+        otp=otp,
+        otp_expiry=otp_expiry,
+        last_otp_sent=datetime.utcnow()
+    )
+    
+    doc = user.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    doc['otp_expiry'] = doc['otp_expiry'].isoformat()
+    doc['last_otp_sent'] = doc['last_otp_sent'].isoformat()
+    
+    await db.users.insert_one(doc)
+    await send_otp_email(user.email, otp, user.name)
+    
+    return {"message": "Signup successful. OTP sent to email", "email": user.email}
+
+@api_router.post("/auth/verify-otp")
+async def verify_otp(data: VerifyOTP):
+    user = await db.users.find_one({"email": data.email}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if user['is_verified']:
+        raise HTTPException(status_code=400, detail="Email already verified")
+    
+    if not user.get('otp') or not user.get('otp_expiry'):
+        raise HTTPException(status_code=400, detail="No OTP found. Please request a new one")
+    
+    otp_expiry = datetime.fromisoformat(user['otp_expiry'])
+    if datetime.utcnow() > otp_expiry:
+        raise HTTPException(status_code=400, detail="OTP expired. Please request a new one")
+    
+    if user['otp'] != data.otp:
+        raise HTTPException(status_code=400, detail="Invalid OTP")
+    
+    await db.users.update_one(
+        {"email": data.email},
+        {"$set": {"is_verified": True, "otp": None, "otp_expiry": None}}
+    )
+    
+    return {"message": "Email verified successfully"}
+
+@api_router.post("/auth/resend-otp")
+async def resend_otp(data: ResendOTP):
+    user = await db.users.find_one({"email": data.email}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if user['is_verified']:
+        raise HTTPException(status_code=400, detail="Email already verified")
+    
+    if user.get('last_otp_sent'):
+        last_sent = datetime.fromisoformat(user['last_otp_sent'])
+        if datetime.utcnow() - last_sent < timedelta(seconds=60):
+            raise HTTPException(status_code=429, detail="Please wait 60 seconds before requesting a new OTP")
+    
+    otp = generate_otp()
+    otp_expiry = datetime.utcnow() + timedelta(minutes=5)
+    
+    await db.users.update_one(
+        {"email": data.email},
+        {"$set": {
+            "otp": otp,
+            "otp_expiry": otp_expiry.isoformat(),
+            "last_otp_sent": datetime.utcnow().isoformat()
+        }}
+    )
+    
+    await send_otp_email(data.email, otp, user['name'])
+    return {"message": "OTP resent successfully"}
+
+@api_router.post("/auth/login")
+async def login(credentials: UserLogin):
+    user = await db.users.find_one({"email": credentials.email}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    if not verify_password(credentials.password, user['password_hash']):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    if not user['is_verified']:
+        raise HTTPException(status_code=403, detail="Email not verified. Please verify your email first")
+    
+    if user.get('is_blocked', False):
+        raise HTTPException(status_code=403, detail="Account blocked. Contact admin")
+    
+    token = create_access_token({
+        "user_id": user['id'],
+        "email": user['email'],
+        "role": user.get('role', 'user')
+    })
+    
+    return {
+        "token": token,
+        "user": {
+            "id": user['id'],
+            "name": user['name'],
+            "email": user['email'],
+            "role": user.get('role', 'user')
+        }
+    }
+
+@api_router.get("/auth/me")
+async def get_me(authorization: Optional[str] = Header(None)):
+    current_user = get_current_user(authorization)
+    user = await db.users.find_one({"id": current_user['user_id']}, {"_id": 0, "password_hash": 0, "otp": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+# ADMIN ROUTES
+@api_router.get("/admin/stats")
+async def admin_stats(authorization: Optional[str] = Header(None)):
+    require_admin(authorization)
+    
+    total_users = await db.users.count_documents({})
+    verified_users = await db.users.count_documents({"is_verified": True})
+    total_analyses = await db.health_records.count_documents({})
+    total_doctors = await db.doctors.count_documents({})
+    total_hospitals = await db.hospitals.count_documents({})
+    
+    return AdminStats(
+        total_users=total_users,
+        verified_users=verified_users,
+        total_symptom_analyses=total_analyses,
+        total_doctors=total_doctors,
+        total_hospitals=total_hospitals
+    ).model_dump()
+
+@api_router.get("/admin/users")
+async def get_all_users(authorization: Optional[str] = Header(None)):
+    require_admin(authorization)
+    users = await db.users.find({}, {"_id": 0, "password_hash": 0, "otp": 0}).to_list(1000)
+    return users
+
+@api_router.post("/admin/users/{user_id}/block")
+async def block_user(user_id: str, authorization: Optional[str] = Header(None)):
+    require_admin(authorization)
+    result = await db.users.update_one({"id": user_id}, {"$set": {"is_blocked": True}})
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"message": "User blocked successfully"}
+
+@api_router.post("/admin/users/{user_id}/unblock")
+async def unblock_user(user_id: str, authorization: Optional[str] = Header(None)):
+    require_admin(authorization)
+    result = await db.users.update_one({"id": user_id}, {"$set": {"is_blocked": False}})
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"message": "User unblocked successfully"}
+
+@api_router.delete("/admin/users/{user_id}")
+async def delete_user(user_id: str, authorization: Optional[str] = Header(None)):
+    require_admin(authorization)
+    result = await db.users.delete_one({"id": user_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"message": "User deleted successfully"}
+
+# Create default admin
+@api_router.post("/seed-admin")
+async def seed_admin():
+    existing = await db.users.find_one({"email": "admin@healthadvisor.com"}, {"_id": 0})
+    if existing:
+        return {"message": "Admin already exists"}
+    
+    admin = UserInDB(
+        name="Admin",
+        email="admin@healthadvisor.com",
+        password_hash=hash_password("admin123"),
+        is_verified=True,
+        role="admin"
+    )
+    
+    doc = admin.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    if doc.get('otp_expiry'):
+        doc['otp_expiry'] = doc['otp_expiry'].isoformat()
+    if doc.get('last_otp_sent'):
+        doc['last_otp_sent'] = doc['last_otp_sent'].isoformat()
+    
+    await db.users.insert_one(doc)
+    return {"message": "Admin created", "email": "admin@healthadvisor.com", "password": "admin123"}
 
 @api_router.post("/users", response_model=User)
 async def create_user(user_input: UserCreate):
